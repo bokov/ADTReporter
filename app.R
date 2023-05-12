@@ -4,6 +4,8 @@ library(DT);
 library(rio);
 library(shinylogs);
 library(shinyjs);
+library(pander);
+panderOptions('p.copula',', and '); panderOptions('p.wrap','');
 
 # https://www.r-bloggers.com/2012/07/validating-email-adresses-in-r/
 isValidEmail <- function(xx) grepl("\\<[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\\>", c(as.character(xx),'')[1], ignore.case=TRUE);
@@ -63,6 +65,7 @@ ui <- fluidPage(
                      column(1,disabled(actionButton("add", HTML(addbuttoncode), class = "btn-success")))
                    ),
                    DTOutput("data_table"),
+                   DTOutput("totalcounts"),
                    actionButton("submit", HTML("<span class='glyphicon glyphicon-ok'></span> Submit"), class = "btn-success")
   ),
   # feedback ----
@@ -129,6 +132,25 @@ server <- function(input, output, session) {
     updateTextInput(inputId='contract',value='');
     shinyjs::runjs('$("#event_type-selectized").focus();');
   });
+  
+  # total output ----
+  output$totalcounts <- renderDT(group_by(data(),EventType,Date)  %>%
+                                   summarise(count=sum(Count)) %>%
+                                   mutate(EventType=paste(count
+                                                          ,recode(EventType
+                                                                  ,`ED Visit`='ED visits'
+                                                                  ,`IP Admit`='inpatient admissions'
+                                                                  ,`IP Discharge`='inpatient discharges'))
+                                          ,EventType=ifelse(count==1,gsub('s$','',EventType),EventType)) %>%
+                                   group_by(Date) %>%
+                                   summarise(Summary = paste('On',max(Date),'we had a total of'
+                                                             ,if(length(EventType)==2){
+                                                               paste(EventType,collapse=' and ')
+                                                               } else pander_return(EventType))) %>% 
+                                   select(Summary) %>%
+                                   datatable(.,selection = 'none', escape = FALSE,
+                                             options = list(pageLength = nrow(data()), dom = 't'),
+                                             rownames = FALSE));
 
   # renderDT ----
   output$data_table <- renderDT({

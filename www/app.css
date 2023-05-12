@@ -1,0 +1,3 @@
+.adhoc_ADT_hidden {display: none;}
+.adhoc_ADT_inline label { display: table-cell; text-align: center; vertical-align: middle; }
+.adhoc_ADT_inline .form-group { display: table-row;}

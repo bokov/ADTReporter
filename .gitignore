@@ -39,3 +39,4 @@ logs/
 *.tsv
 local_settings.R
 message.md
+output

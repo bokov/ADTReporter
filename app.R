@@ -151,7 +151,7 @@ server <- function(input, output, session) {
   observeEvent(input$submit, {
     result <- select(data(),-'Delete') %>% 
       mutate(userselfid=input$userselfid, uniqueid=input$uniqueid
-             ,ip=coalesce(session$clientData$ip,'')
+             ,ip=c(session$clientData$ip,'')[1]
              ,event=session$clientData$url_search
              ,full_request=paste0(session$clientData$url_protocol
                                   , session$clientData$url_hostname
